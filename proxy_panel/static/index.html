@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#122331">
+  <title>PROXY · 服务器代理管理</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='11' fill='%23122331'/%3E%3Cpath d='M11 11h8v8h-8zm10 0h8v8h-8zM11 21h8v8h-8zm10 0h8v8h-8z' fill='%237ae0c2'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script>
+</head>
+<body>
+<div id="loading" class="loading-screen"><div class="brand-mark">P</div><p>正在连接管理台…</p><p id="connection-error" hidden></p></div>
+<div id="app" class="app-shell" hidden>
+  <aside class="sidebar">
+    <div class="sidebar-brand"><span class="brand-mark">P</span><div>PROXY<small>SERVER CONSOLE</small></div></div>
+    <div class="nav-label">工作空间</div>
+    <nav aria-label="主导航">
+      <button class="nav-item active" data-page="nodes"><span data-icon="nodes"></span><span>节点管理</span><span id="nav-count" class="nav-count">0</span></button>
+      <button class="nav-item" data-page="subscriptions"><span data-icon="subscription"></span><span>订阅管理</span></button>
+      <button class="nav-item" data-page="logs"><span data-icon="logs"></span><span>运行日志</span></button>
+      <button class="nav-item" data-page="settings"><span data-icon="settings"></span><span>使用设置</span></button>
+    </nav>
+    <div class="sidebar-bottom"><div class="server-glyph" data-icon="server"></div><strong id="owner-name">当前用户</strong><p>代理在服务器后台运行</p><div class="sidebar-divider"></div><span class="small-muted">由 mihomo 提供连接支持</span></div>
+  </aside>
+
+  <div class="workspace">
+    <header class="topbar"><div class="breadcrumb">工作空间 <span>/</span> <strong id="breadcrumb">节点管理</strong></div><div class="topbar-right"><span id="core-status" class="status-pill">正在读取</span><button id="refresh-button" class="icon-button" title="刷新状态" aria-label="刷新状态"><span data-icon="refresh"></span></button><div class="topbar-separator"></div><span class="avatar">P</span></div></header>
+    <main>
+      <section id="page-nodes" class="page">
+        <div class="page-heading"><div><div class="eyebrow">CONNECTIONS</div><h1>节点管理</h1><p class="muted">找到合适的线路，让服务器保持连接。</p></div><button id="import-button" class="button primary"><span data-icon="plus"></span>导入节点</button></div>
+        <div class="stats-grid">
+          <article class="stat-card current-card"><div class="stat-label"><span data-icon="route"></span>当前节点</div><strong id="current-name" class="stat-name">尚未选择</strong><span id="current-detail" class="stat-detail">导入一个节点开始使用</span></article>
+          <article class="stat-card"><div class="stat-label"><span data-icon="server"></span>服务器代理地址</div><strong id="proxy-address" class="stat-endpoint">127.0.0.1:17891</strong><span class="stat-detail">HTTP / SOCKS5 · 仅当前用户 · 需要认证</span></article>
+          <article class="stat-card"><div class="stat-label"><span data-icon="download"></span>累计下载</div><strong id="total-download" class="stat-number">0 <small>B</small></strong><span id="live-download" class="stat-detail">当前下载 0 B/s</span></article>
+          <article class="stat-card"><div class="stat-label"><span data-icon="activity"></span>当前连接</div><strong id="connection-count" class="stat-number">0</strong><span id="upload-detail" class="stat-detail">累计上传 0 B</span></article>
+        </div>
+        <div id="core-warning" class="notice warning" hidden></div>
+        <div id="job-banner" class="job-banner" hidden><span class="spinner"></span><div><strong id="job-title">正在测试</strong><span id="job-detail"></span></div><progress id="job-progress" max="1" value="0"></progress></div>
+        <section class="panel nodes-panel">
+          <div class="panel-heading"><div><h2>我的节点 <span id="node-count" class="count-badge">0</span></h2><p class="section-note">切换作用于新连接；测速不会切换当前节点。</p></div><div class="batch-actions"><button id="test-all-delay" class="button secondary compact"><span data-icon="activity"></span>测连通性</button><button id="test-all-speed" class="button secondary compact"><span data-icon="download"></span>测下载速度</button></div></div>
+          <div class="table-toolbar"><div class="search-box"><span data-icon="search"></span><input id="search" type="search" placeholder="搜索节点名称或地址" aria-label="搜索节点"></div><select id="type-filter" aria-label="协议筛选"><option value="">全部协议</option><option value="vless">VLESS</option><option value="vmess">VMess</option><option value="trojan">Trojan</option><option value="ss">Shadowsocks</option><option value="hysteria2">Hysteria2</option><option value="tuic">TUIC</option><option value="http">HTTP</option><option value="socks5">SOCKS5</option></select><span id="filtered-count" class="small-muted"></span></div>
+          <div class="table-scroll"><table class="node-table"><thead><tr><th>节点 / 地址</th><th>协议</th><th>访问耗时</th><th>下载速度</th><th>来源</th><th class="actions-heading">操作</th></tr></thead><tbody id="node-rows"></tbody></table></div>
+          <div class="table-footer"><span data-icon="info"></span><span>访问耗时包含代理握手和网页响应；下载速度使用 2 MB 文件实测。</span><span id="last-sync" class="last-sync">等待同步</span></div>
+        </section>
+        <div class="workspace-note"><span data-icon="shield"></span><p>节点保存在服务器 <span>·</span> 关闭浏览器后代理仍在后台运行。</p></div>
+      </section>
+
+      <section id="page-subscriptions" class="page" hidden>
+        <div class="page-heading"><div><div class="eyebrow">SOURCES</div><h1>订阅管理</h1><p class="muted">保存订阅来源，按需获取最新节点。</p></div><button id="add-subscription" class="button primary"><span data-icon="plus"></span>添加订阅</button></div>
+        <div class="notice"><span data-icon="shield"></span><p>更新失败会保留已有节点。订阅更新只替换该来源的节点，手动导入的节点会保留。</p></div>
+        <div id="subscription-list" class="subscription-list"></div>
+      </section>
+
+      <section id="page-logs" class="page" hidden>
+        <div class="page-heading"><div><div class="eyebrow">ACTIVITY</div><h1>运行日志</h1><p class="muted">查看当前工作空间的连接记录和错误。</p></div><button id="refresh-logs" class="button secondary"><span data-icon="refresh"></span>刷新日志</button></div>
+        <section class="panel log-panel"><div class="log-top"><span class="status-pill neutral">MIHOMO</span><span class="small-muted">最近的运行记录 · 每 3 秒更新</span></div><pre id="logs-content" aria-label="运行日志">暂无运行日志</pre></section>
+      </section>
+
+      <section id="page-settings" class="page" hidden>
+        <div class="page-heading"><div><div class="eyebrow">PREFERENCES</div><h1>使用设置</h1><p class="muted">连接服务器程序，或启停代理。</p></div></div>
+        <div class="settings-grid"><section class="panel settings-card"><div class="card-heading"><span data-icon="terminal"></span><h2>让终端使用代理</h2></div><p class="muted">在需要代理的服务器终端中运行以下命令，仅对该终端及新启动的程序生效。</p><div class="code-box"><pre id="proxy-command"></pre><button id="copy-command" class="icon-button" title="复制命令" aria-label="复制命令"><span data-icon="copy"></span></button></div><p class="section-note">这些命令仅影响当前终端及其新启动的程序。使用 HTTP 代理地址的程序可填写 <code id="settings-endpoint"></code>。</p></section>
+        <section class="panel settings-card"><div class="card-heading"><span data-icon="power"></span><h2>代理进程</h2></div><p class="muted">管理本工作空间的代理。关闭浏览器后，代理仍会在服务器后台运行。</p><div id="process-details" class="process-details"></div><div class="button-row"><button id="core-toggle" class="button secondary">启动代理</button><button id="core-restart" class="button secondary"><span data-icon="refresh"></span>重启代理</button></div></section>
+        </div>
+      </section>
+    </main><footer class="workspace-footer"><span>PROXY</span><span>运行在你的服务器上</span></footer>
+  </div>
+</div>
+
+<dialog id="import-dialog"><form id="import-form"><div class="dialog-heading"><div><h2>导入节点</h2><p class="muted">粘贴节点链接、Base64 订阅内容或 YAML。</p></div><button type="button" class="icon-button close-dialog" aria-label="关闭"><span data-icon="close"></span></button></div><label for="import-text">节点内容</label><textarea id="import-text" rows="8" placeholder="vless://…&#10;trojan://…&#10;&#10;支持多行粘贴，重复节点会自动跳过。" required spellcheck="false"></textarea><p class="section-note">支持 VLESS / VMess / Trojan / Shadowsocks / Hysteria2 / TUIC。订阅网址请在“订阅管理”中添加。</p><p id="import-error" class="form-error" role="alert" hidden></p><div class="dialog-footer"><button type="button" class="button secondary close-dialog">取消</button><button id="import-submit" type="submit" class="button primary">导入节点</button></div></form></dialog>
+<dialog id="edit-dialog"><form id="edit-form"><div class="dialog-heading"><div><h2>编辑节点</h2><p class="muted">修改名称和连接地址，其他协议参数会保留。</p></div><button type="button" class="icon-button close-dialog" aria-label="关闭"><span data-icon="close"></span></button></div><input id="edit-id" type="hidden"><label for="edit-name">节点名称</label><input id="edit-name" required maxlength="160"><div class="form-two-columns"><div><label for="edit-server">连接地址</label><input id="edit-server" required spellcheck="false"></div><div><label for="edit-port">端口</label><input id="edit-port" type="number" min="1" max="65535" required></div></div><label for="edit-sni">TLS 域名 / SNI</label><input id="edit-sni" spellcheck="false" placeholder="无 TLS 时可留空"><p class="section-note">连接地址与 TLS 域名可以不同；更改地址不会自动改变 TLS 域名。</p><p id="edit-error" class="form-error" role="alert" hidden></p><div class="dialog-footer"><button type="button" class="button secondary close-dialog">取消</button><button id="edit-submit" class="button primary" type="submit">保存修改</button></div></form></dialog>
+<dialog id="subscription-dialog"><form id="subscription-form"><div class="dialog-heading"><div><h2>添加订阅</h2><p class="muted">支持常见链接订阅和 Clash YAML 订阅。</p></div><button type="button" class="icon-button close-dialog" aria-label="关闭"><span data-icon="close"></span></button></div><label for="sub-name">订阅名称</label><input id="sub-name" placeholder="例如：我的订阅" maxlength="160" required><label for="sub-url">订阅地址</label><input id="sub-url" type="url" placeholder="https://…" required spellcheck="false" autocomplete="off"><label for="sub-interval">自动更新</label><select id="sub-interval"><option value="0">仅手动更新</option><option value="1">每小时</option><option value="6">每 6 小时</option><option value="24">每天</option><option value="168">每周</option></select><label class="checkbox-label"><input id="sub-via-proxy" type="checkbox">通过当前代理下载订阅</label><p id="sub-error" class="form-error" role="alert" hidden></p><div class="dialog-footer"><button type="button" class="button secondary close-dialog">取消</button><button id="sub-submit" class="button primary" type="submit">添加订阅</button></div></form></dialog>
+<dialog id="confirm-dialog"><div class="dialog-heading"><h2 id="confirm-title">确认删除</h2><button class="icon-button close-dialog" aria-label="关闭"><span data-icon="close"></span></button></div><p id="confirm-message" class="muted"></p><div class="dialog-footer"><button class="button secondary close-dialog">取消</button><button id="confirm-submit" class="button danger">删除</button></div></dialog>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+</body></html>
